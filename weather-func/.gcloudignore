@@ -1,0 +1,4 @@
+*
+!.gcloudignore
+!main.py
+!requirements.txt
