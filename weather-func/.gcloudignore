@@ -1,5 +1,0 @@
-gcloud run deploy weather \
-  --region us-central1 \
-  --image gcr.io/Kaizen/weather:latest \
-  --allow-unauthenticated \
-  --update-env-vars WEATHER_API_KEY=2cd037ec05ba444abee191808253107
