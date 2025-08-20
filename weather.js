@@ -34,18 +34,18 @@ async function obtenerClima(lat, lon) {
 
 app.get("/api/provincias", async (_req, res) => {
   try {
-    const datos = await Promise.all(
+    const lineas = await Promise.all(
       provinciasCR.map(async p => {
         const c = await obtenerClima(p.lat, p.lon);
         return `${p.nombre}: ${c.temp ?? "—"} °C, ${c.wind ?? "—"} km/h, ${c.desc ?? "—"}`;
       })
     );
-    res.json({ text: datos.join("\n") });
+    res.json({ desc: lineas.join("\n") });
   } catch {
-    const vacio = provinciasCR.map(p => `${p.nombre}: — °C, — km/h, —`).join("\n");
-    res.json({ text: vacio });
+    const lineas = provinciasCR.map(p => `${p.nombre}: — °C, — km/h, —`).join("\n");
+    res.json({ desc: lineas });
   }
 });
 
 app.listen(PORT);
-console.log(`Servidor escuchando en el puerto ${PORT}`);
+console.log(`Servidor corriendo en http://localhost:${PORT}`);
