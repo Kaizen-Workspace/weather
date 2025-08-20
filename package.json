@@ -21,5 +21,6 @@
   "bugs": {
     "url": "https://github.com/Kaizen-Workspace/weather/issues"
   },
-  "homepage": "https://github.com/Kaizen-Workspace/weather#readme"
+  "homepage": "https://github.com/Kaizen-Workspace/weather#readme",
+  "devDependencies": {}
 }

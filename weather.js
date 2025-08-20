@@ -23,62 +23,32 @@ const provinciasCR = [
 ];
 
 async function obtenerClima(lat, lon) {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&windspeed_unit=kmh&timezone=auto`;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m&windspeed_unit=kmh&timezone=America/Costa_Rica`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  return data.current_weather
-    ? {
-        temp: data.current_weather.temperature,
-        wind: data.current_weather.windspeed,
-        code: data.current_weather.weathercode,
-        desc: wcMap[data.current_weather.weathercode] || "—"
-      }
-    : null;
+  if (!res.ok) return { temp: null, wind: null, desc: null };
+  const d = await res.json();
+  const c = d.current;
+  if (!c) return { temp: null, wind: null, desc: null };
+  return {
+    temp: c.temperature_2m ?? null,
+    wind: c.wind_speed_10m ?? null,
+    desc: wcMap[c.weather_code] ?? null
+  };
 }
 
-// 📌 Endpoint 1: Clima de todas las provincias
-app.get("/api/provincias", async (req, res) => {
-  try {
-    const results = [];
-    for (const p of provinciasCR) {
+app.get("/api/provincias", async (_req, res) => {
+  const lista = await Promise.all(
+    provinciasCR.map(async p => {
       try {
-        const clima = await obtenerClima(p.lat, p.lon);
-        results.push({
-          provincia: p.nombre,
-          lat: p.lat,
-          lon: p.lon,
-          ...clima
-        });
+        const c = await obtenerClima(p.lat, p.lon);
+        return { provincia: p.nombre, temp: c.temp, wind: c.wind, desc: c.desc };
       } catch {
-        results.push({ provincia: p.nombre, error: true });
+        return { provincia: p.nombre, temp: null, wind: null, desc: null };
       }
-    }
-    res.json(results);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+    })
+  );
+  res.json(lista);
 });
 
-// 📌 Endpoint 2: Clima en coordenadas específicas
-app.get("/api/clima", async (req, res) => {
-  const { lat, lon } = req.query;
-  if (!lat || !lon) {
-    return res.status(400).json({ error: "Parámetros 'lat' y 'lon' requeridos" });
-  }
-  try {
-    const clima = await obtenerClima(parseFloat(lat), parseFloat(lon));
-    if (!clima) return res.json({ error: "No hay datos" });
-    res.json({
-      lat: parseFloat(lat),
-      lon: parseFloat(lon),
-      ...clima
-    });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.listen(PORT, () => {
-  console.log(`Servidor escuchando en http://localhost:${PORT}`);
-});
+app.listen(PORT);
+console.log(`Servidor corriendo en http://localhost:${PORT}/api/provincias`);
